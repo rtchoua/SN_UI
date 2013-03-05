@@ -1,0 +1,185 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:a="http://ajax.org/2005/aml" >
+    <head>
+        <title>SP's Graph</title>
+        
+        <!-- The line below will make the charts go a lot faster! -->
+        <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE7" />
+        
+        <script type="text/javascript" src="../apf_3.02_sdk/apf_debug.js"></script>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif, Tahoma, Verdana;
+                font-size : 12px;
+                display : none;
+                margin : 0;
+                padding : 0;
+            }
+            html{overflow : hidden;}
+            
+            h1{
+                font-size : 20pt;
+                color : #25a8e7;
+                margin : 15px 0 0 0;
+            }
+            
+            h4 {
+                font-size: 12px;
+                font-weight: bold;
+                color: #2c78bd;
+                margin: 16px 0 6px 0;
+            }
+            
+            p{
+                line-height : 1.3em;
+            }
+            
+            h2{
+                font-size : 11pt;
+                margin : 20px 0 0 0;
+            }
+            
+            div.description{
+                padding : 3px 30px 10px 0;
+            }
+            
+            pre.code {
+                background:white none repeat scroll 0 0;
+                color:black;
+                font-family:Courier New;
+                font-size:10pt;
+                margin:0;
+                padding:5px;
+                width : auto;
+                white-space:pre;
+                border:1px solid #ddd;
+                /*max-height : 600px;*/
+            }
+            
+            .demo_content{
+                padding : 5px 10px 10px 15px;
+                border : 1px solid #c3c3c3;
+                overflow : auto;
+            }
+            
+            .loading{
+                color : gray;
+                padding : 20px;
+            }
+            
+            .treedemo{
+                position : relative;
+                top : 10px;
+            }
+            
+            .barfill{
+                border : 1px solid #c3c3c3;
+                background : #f1f1f1;
+            }
+        </style>
+    </head>
+    <body margin="10 10 10 10" >
+        <a:skin src="../apf_3.02_sdk/skins/platform/skins.xml" id="apfskin" media-path="../apf_3.02_sdk/skins/platform/images/" icon-path="../apf_3.02_sdk/demo/icons/" />
+        <a:skin src="../apf_3.02_sdk/demo/skins-demo.xml" media-path="../apf_3.02_sdk/demo/images/" icon-path="../apf_3.02_sdk/demo/icons/" id="apfdemo|winskin" />
+
+        <a:appsettings name="demobrowser" debug="false"
+          disable-right-click = "false"
+          disable-space       = "true"
+          allow-select        = "true"
+          resize-outline      = "{apf.isIE and apf.isIE lt 8 and !apf.isIE7Emulate}"
+          initdelay           = "false">
+            <a:defaults for="window" draggable="relative" />
+        </a:appsettings>
+
+        <a:model id="mdlDemo" />
+            
+ 		<a:model id="mdlFlowchart" save-original="true" 
+              src = "demo/elements/flowchart/myFlowChart.xml" />
+            
+            <a:model id="mdlblocks"
+              src = "demo/elements/flowchart/blocks.xml" />
+            
+            <a:window 
+              width     = "100%" 
+              height    = "100%" 
+              title     = "Flowchart" 
+              icon      = "application_view_icons.png" 
+              visible   = "true"
+              resizable = "true">
+                <a:toolbar skin="toolbar2005" align="top" height="51">
+                    <a:bar>
+                        <a:button onclick="rotateElement(0);" caption="Rotate CCW" icon="tb/rotate_acw.png" tooltip="Rotate counter-clockwise"></a:button>
+                        <a:button onclick="rotateElement(1);" caption="Rotate CW" icon="tb/rotate_cw.png" tooltip="Rotate clockwise"></a:button>
+                        <a:button onclick="flipv();" caption="Flip V" icon="tb/flipv.png" tooltip="Flip vertical"></a:button>
+                        <a:button onclick="fliph();" caption="Flip H" icon="tb/fliph.png" tooltip="Flip horizontal"></a:button>
+                        <a:button onclick="alert(mdlFlowchart.getXml().xml);" caption="Model" icon="layout.png" tooltip="Show workflow model"></a:button>
+                        <a:button onclick="lockToggleSelected();"  caption="Lock" icon="tb/lock.png" tooltip="Toggle lock"></a:button>
+                    </a:bar>
+                    <a:bar>
+                        <a:button onclick="apf.window.getActionTracker().undo()" caption="Undo" icon="icoUndo.gif" tooltip="Undo last action"></a:button>
+                        <a:button onclick="apf.window.getActionTracker().redo()" caption="Redo" icon="icoRedo.gif" tooltip="Redo last action"></a:button>
+                        <a:button onclick="wfExample.setMode('normal');" caption="Mode:normal" icon="mode_normal.png" tooltip="Mode:normal"></a:button>
+                        <a:button onclick="wfExample.setMode('connection-add');" caption="Mode:conn-add" icon="mode_connection_add.png" tooltip="Mode:connection-add"></a:button>
+                    </a:bar>
+                </a:toolbar>
+                
+                <a:list 
+                  id       = "MainList" 
+                  model    = "mdlblocks" 
+                  skin     = "thumbnail_caption" 
+                  dragcopy = "true"
+                  align    = "left-splitter" 
+                  width    = "148">
+                    <a:bindings>
+                        <a:caption match = "[@caption]" />
+                        <a:image   match = "[ancestor-or-self::node()[@type]]"
+                                   value = "demo/images/blocks/[@type].png" />
+                        <a:each    match = "[block]" />
+                        <a:drag    match = "[block]" copy="true" />
+                    </a:bindings>
+                    <a:actions>
+                        <a:remove match="[node()[@candelete=0]]" />
+                        <a:add />
+                    </a:actions>
+                </a:list>
+            
+                <a:flowchart 
+                  id          = "wfExample" 
+                  drop        = "true"
+                  template    = "demo/elements/flowchart/template.xml" 
+                  title       = "canvas" 
+                  model       = "mdlFlowchart" 
+                  align       = "right">
+                    <a:each match="[block]">
+                        <a:move match="[@move] != false &amp;&amp; [@lock] != true"></a:move>
+                        <a:resize match="[@resize] == true &amp;&amp; [@lock] != true"></a:resize>
+                        <a:css match="{true}" default="locked"></a:css>
+                        <a:left match="[@left]"></a:left>
+                        <a:top match="[@top]"></a:top>
+                        <a:id match="[@id]"></a:id>
+                        <a:width match="[@width]"></a:width>
+                        <a:height match="[@height]"></a:height>
+                        <a:flipv match="[@flipv]"></a:flipv>
+                        <a:fliph match="[@fliph]"></a:fliph>
+                        <a:rotation match="[@rotation]"></a:rotation>
+                        <a:lock match="[@lock]"></a:lock>
+                        <a:type match="[@type]"></a:type>
+                        <a:caption match="[@caption]" default="Untitled block"></a:caption>
+                        <a:cap-pos match="[@cap-pos]"></a:cap-pos>
+                        <a:zindex match="[@zindex]"></a:zindex>
+                        <a:image match="[@src]"></a:image>
+
+                        <!-- Connection Binding Rules -->
+                        <a:connection match="[block/connection]"></a:connection>
+                        <a:ref match="[@ref]"></a:ref>
+                        <a:blockinput match="[@input]"></a:blockinput>
+                        <a:blockoutput match="[@output]"></a:blockoutput>
+                        <a:blocklabel match="[@label]"></a:blocklabel>
+                    </a:each>
+                </a:flowchart>
+            </a:window>
+            
+            <a:script src="demo/elements/flowchart/code.js"></a:script>
+        
+    </body>
+</html>

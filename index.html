@@ -1,0 +1,218 @@
+<html>
+<head>
+<title>Science Network</title>
+<link rel="stylesheet" type="text/css" href="resources/css/ext-all.css" />
+<link rel="stylesheet" type="text/css" href="css/example.css" />
+<link rel="stylesheet" type="text/css" href="css/sn.css" />
+<!-- GC -->
+
+<style type="text/css">
+p {
+    margin:5px;
+}
+.settings {
+    background-image:url(icons/fam/folder_wrench.png);
+}
+.nav {
+    background-image:url(icons/fam/folder_go.png);
+}
+.info {
+    background-image:url(icons/fam/information.png);
+}
+</style>
+
+<script type="text/javascript" src="js/ext-all.js"></script>
+<script type="text/javascript" src="js/window.js"></script>
+<script type="text/javascript">
+    Ext.require(['*']);
+    Ext.require([
+                 'Ext.tab.*',
+                 'Ext.window.*',
+                 'Ext.tip.*',
+                 'Ext.layout.container.Border'
+             ]);
+    Ext.onReady(function() {
+    	var win_is_vis = 0;
+    	var win;
+    	
+        Ext.QuickTips.init();
+
+        // NOTE: This is an example showing simple state management. During development,
+        // it is generally best to disable state management as dynamically-generated ids
+        // can change across page loads, leading to unpredictable results.  The developer
+        // should ensure that stable state ids are set for stateful components in real apps.
+        Ext.state.Manager.setProvider(Ext.create('Ext.state.CookieProvider'));
+
+        var viewport = Ext.create('Ext.Viewport', {
+            id: 'border-example',
+            layout: 'border',
+            items: [
+            	{
+                region: 'west',
+                stateId: 'navigation-panel',
+                id: 'west-panel', // see Ext.getCmp() below
+                title: 'Settings',
+                split: true,
+                width: 175,
+                minWidth: 175,
+                maxWidth: 700,
+                collapsible: true,
+                animCollapse: true,
+                margins: '0 0 0 5',
+                layout: 'accordion',
+                items: [{
+                    contentEl: 'west',
+                    title: 'Profile',
+                    iconCls: 'nav', // see the HEAD section for style used
+                    html: '<form action="">First name: <input type="text" name="firstname" /><br />Last name: <input type="text" name="lastname" /></br>Username: <input type="text" name="username" /></br>Password: <input type="password" name="password" /></br>Affiliation: <input type="text" name="affiliation" /></br><input type="button" value="update"></form>'
+                }, {
+                    title: 'Contacts',
+                    html: '<p>Some contact settins in here.</p>',
+                    iconCls: 'settings'
+                }, {
+                    title: 'Groups',
+                    html: '<p>Some group settings in here.</p>',
+                    iconCls: 'info'
+                }]
+            },
+            // in this instance the TabPanel is not wrapped by another panel
+            // since no title is needed, this Panel is added directly
+            // as a Container
+            Ext.create('Ext.tab.Panel', {
+                region: 'center', // a center region is ALWAYS required for border layout
+                collapsible: false,
+                split: true,
+                height: 0,
+                minHeight: 0,
+                layout: {
+                    type: 'border',
+                    padding: 5
+                },
+                dockedItems: [{
+                    dock: 'bottom',
+                    xtype: 'toolbar',
+                    items: [ '', {
+                       xtype: 'button',
+                       text: "Publish New",
+                       id: "show-btn",
+                       tooltip: 'New Discovery',
+
+                         listeners: {
+                         click: function(){
+                             //alert( 'was activated.');
+                             var button = document.getElementById('show-btn');
+                             //alert(document.getElementById('center1').offsetWidth+' & '+ document.getElementsByTagName('body')[0].offsetHeight);
+                             var win_exists = 0;
+                             //var win_is_vis = 0;
+					        if (!win) {
+					            var style = {
+					                    display: 'block',
+					                    position: 'absolute',
+					                    top: this.top + 'px',
+					                    left: this.left + 'px',
+					                    //height: ((this.bottom - this.top) + 1) + 'px',
+					                    height: (document.getElementsByTagName('body')[0].offsetHeight) + 'px',
+					                    width: ((this.right - this.left) + 1) + 'px',
+					                    opacity: 0.3,
+					                    'pointer-events': 'none',
+					                    'z-index': 9999999
+					                };
+					            win= Ext.create('Ext.Window', {
+					                title: 'Publish New Discovery',
+					                width: 400,
+					                //height: 200,
+					                height: (document.getElementsByTagName('body')[0].offsetHeight - 50),
+					                x: 30,
+					                y: 25,
+					                id: 'publish_win',
+					                constrain: true,
+					                constrainHeader: true,
+					                plain: true,
+					                headerPosition: 'bottom',
+					                layout: 'fit',
+					                items: {
+					                    border: false
+					                }
+					            }).show();
+            
+					            win_is_vis = 1;
+					            win.setStyle(style);
+					            //win.setStyle({
+					            //	  height: '1000px'
+					            //	});
+					            win_is_vis = 1;
+					        }else{
+						        if (win_is_vis==1){
+						        	win.hide();
+						        	win_is_vis = 0;
+						        }else{
+						        	win.show()
+						        	win_is_vis = 1;
+						        }
+					        }
+                        }
+                     }
+                       
+                    }]
+                }],
+                deferredRender: false,
+                activeTab: 0,     // first tab initially active
+                items: [{
+                    contentEl: 'center1',
+                    title: 'Username',
+                    //closable: true,
+                    autoScroll: true
+                }, {
+                    contentEl: 'center2',
+                    title: 'Discoveries',
+                    autoScroll: true
+                }, {
+                    contentEl: 'center3',
+                    title: 'Agents',
+                    autoScroll: true
+                }]
+            })]
+        });
+       
+        // get a reference to the HTML element with id "hideit" and add a click listener to it
+        Ext.get("hideit").on('click', function(){
+            // get a reference to the Panel that was created with id = 'west-panel'
+            var w = Ext.getCmp('west-panel');
+            // expand or collapse that Panel based on its collapsed property state
+            w.collapsed ? w.expand() : w.collapse();
+        });
+        
+        // Start with west panel closed
+        // get a reference to the Panel that was created with id = 'west-panel'
+        var w = Ext.getCmp('west-panel');
+        // expand or collapse that Panel based on its collapsed property state
+        w.collapsed ? w.expand() : w.collapse();      
+        
+        // Try to also adjust window size
+        
+        //alert(document.getElementById('center1').offsetWidth+' & '+document.getElementsByTagName('body')[0].offsetHeight);
+    });
+    </script>
+</head>
+<body>
+    <!-- use class="x-hide-display" to prevent a brief flicker of the content -->
+    <div id="west" class="x-hide-display">
+        
+    </div>
+    <div id="center2" class="x-hide-display" style="width:100%;height:100%">
+        <a id="hideit" href="#">Toggle the west region</a>
+        <p>This is the discoveries page</p>
+       </div>
+    <div id="center1" class="x-hide-display" style="height:100%">
+    	<iframe src="sp.html" width="100%" height="100%" style="border:0px"></iframe>
+    </div>
+    <div id="center3" class="x-hide-display"   style="width:100%;height:100%">
+		<p>This is the agent's page</p>
+    </div>
+    <div id="props-panel" class="x-hide-display" style="width:200px;height:200px;overflow:hidden;">
+    </div>
+    <div id="south" class="x-hide-display">
+        <p>south - generally for informational stuff, also could be for status bar</p>
+    </div>
+</body>
+</html>
